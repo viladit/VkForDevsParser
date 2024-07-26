@@ -20,7 +20,6 @@ public class JsonHandler {
             ObjectNode outputNode = mapper.createObjectNode();
 
             if (response.contains("\"error_code\":104")) {
-                System.out.println("метода нет!!!");
                 outputNode.put("error_code", 104);
                 return outputNode;
             }
@@ -35,19 +34,36 @@ public class JsonHandler {
                     .path("contents");
 
             // Копируем нужные поля в новый обьект
-            outputNode.put("title", inputContentsNode.path("title").asText());
-            outputNode.put("description", inputContentsNode.path("description").asText());
-            outputNode.put("result_description", inputContentsNode.path("result_description").asText());
-
-            int errorsCount = inputContentsNode.path("errors").size();
-            if (errorsCount == 0) {
-                outputNode.put("errors", "0 BAD");
-            } else if (errorsCount <= 2) {
-                outputNode.put("errors", "1-2 NORMAL");
-            } else if (errorsCount > 2) {
-                outputNode.put("errors", "2+ GOOD");
+            // description
+            ObjectNode descriptionNode = outputNode.putObject("description");
+            descriptionNode.put("value", inputContentsNode.path("description").asText());
+            if (inputContentsNode.path("description").asText() == "") {
+                descriptionNode.put("status", "EMPTY");
+            } else {
+                descriptionNode.put("status", "OK");
             }
 
+            // result_description
+            ObjectNode resultDescriptionNode = outputNode.putObject("result_description");
+            resultDescriptionNode.put("value", inputContentsNode.path("result_description").asText());
+            if (inputContentsNode.path("result_description").asText() == "") {
+                resultDescriptionNode.put("status", "EMPTY");
+            } else {
+                resultDescriptionNode.put("status", "OK");
+            }
+
+            // errors
+            ObjectNode errorsNode = outputNode.putObject("errors");
+            if (inputContentsNode.path("errors").size() == 0) {
+                errorsNode.put("status", "EMPTY");
+            } else if (inputContentsNode.path("errors").size() <= 1) {
+                errorsNode.put("status", "WARNING");
+            } else if (inputContentsNode.path("errors").size() > 1) {
+                errorsNode.put("status", "OK");
+            }
+
+            // params
+            ObjectNode paramsNode = outputNode.putObject("params");
             int paramsCount = inputContentsNode.path("params").size();
             if (paramsCount == 0) {
                 outputNode.put("params", "0 BAD");
@@ -74,6 +90,5 @@ public class JsonHandler {
         mapper.writerWithDefaultPrettyPrinter().writeValue(jsonFile, jsonNode);
 
         System.out.println("JSON записан в файл: data/" + filename);
-
     }
 }

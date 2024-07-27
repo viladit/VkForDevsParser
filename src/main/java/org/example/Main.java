@@ -14,7 +14,7 @@ import static org.example.JsonHandler.saveJson;
 
 public class Main {
     public static void main(String[] args) {
-        String token = "vk1.a.";
+        String token = "vk1.a.-qRam1Ax7v0ZYXTh0Q8Qa-";
         ObjectMapper mapper = new ObjectMapper();
         boolean isTokenExpired = false;
 

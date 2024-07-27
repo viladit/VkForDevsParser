@@ -21,7 +21,24 @@ public class JsonHandler {
             ObjectNode outputNode = mapper.createObjectNode();
 
             if (response.contains("\"error_code\":104")) {
-                outputNode.put("error_code", 104);
+                ObjectNode descriptionNode = outputNode.putObject("description");
+                descriptionNode.put("value", "");
+                descriptionNode.put("status", "EMPTY");
+
+                // result_description
+                ObjectNode resultDescriptionNode = outputNode.putObject("result_description");
+                resultDescriptionNode.put("value", "");
+                resultDescriptionNode.put("status", "EMPTY");
+
+                // errors
+                ObjectNode errorsNode = outputNode.putObject("errors");
+                errorsNode.put("status", "EMPTY");
+
+                // params
+                ObjectNode paramsNode = outputNode.putObject("params");
+                paramsNode.put("value", "");
+                paramsNode.put("status", "EMPTY");
+
                 return outputNode;
             }
             if (response.contains("\"error_code\":5")) {
@@ -65,7 +82,6 @@ public class JsonHandler {
 
             // params
             ObjectNode paramsNode = outputNode.putObject("params");
-            // TODO
             int noDescriptionParamsCount = 0;
             boolean allParamsHaveDescription = true;
             for (JsonNode paramNode : inputContentsNode.path("params")) {
@@ -74,8 +90,7 @@ public class JsonHandler {
                     noDescriptionParamsCount++;
                 }
             }
-
-            if(originalNode.path("response").path("page").path("contents").path("params").size() == 0) {
+            if(inputContentsNode.path("params").size() == 0) {
                 paramsNode.put("status", "EMPTY");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
             } else if (!allParamsHaveDescription) {
@@ -84,6 +99,7 @@ public class JsonHandler {
             } else {
                 paramsNode.put("status", "OK");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
+
             }
 
             return outputNode;

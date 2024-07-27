@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.example.Main.includeAllErrorsAndParamsFlag;
+import static org.example.StatisticCounter.*;
+
 
 public class JsonHandler {
 
@@ -26,20 +28,24 @@ public class JsonHandler {
                 ObjectNode descriptionNode = outputNode.putObject("description");
                 descriptionNode.put("value", "");
                 descriptionNode.put("status", "EMPTY");
+                increaseEmptyDescriptions();
 
                 // result_description
                 ObjectNode resultDescriptionNode = outputNode.putObject("result_description");
                 resultDescriptionNode.put("value", "");
                 resultDescriptionNode.put("status", "EMPTY");
+                increaseEmptyResultDescriptions();
 
                 // errors
                 ObjectNode errorsNode = outputNode.putObject("errors");
                 errorsNode.put("status", "EMPTY");
+                increaseEmptyErrors();
 
                 // params
                 ObjectNode paramsNode = outputNode.putObject("params");
                 paramsNode.put("value", "");
                 paramsNode.put("status", "EMPTY");
+                increaseEmptyParams();
 
                 return outputNode;
             }
@@ -59,6 +65,7 @@ public class JsonHandler {
             descriptionNode.put("value", inputContentsNode.path("description").asText());
             if (inputContentsNode.path("description").asText() == "") {
                 descriptionNode.put("status", "EMPTY");
+                increaseEmptyDescriptions();
             } else {
                 descriptionNode.put("status", "OK");
             }
@@ -68,6 +75,7 @@ public class JsonHandler {
             resultDescriptionNode.put("value", inputContentsNode.path("result_description").asText());
             if (inputContentsNode.path("result_description").asText() == "") {
                 resultDescriptionNode.put("status", "EMPTY");
+                increaseEmptyResultDescriptions();
             } else {
                 resultDescriptionNode.put("status", "OK");
             }
@@ -76,8 +84,10 @@ public class JsonHandler {
             ObjectNode errorsNode = outputNode.putObject("errors");
             if (inputContentsNode.path("errors").size() == 0) {
                 errorsNode.put("status", "EMPTY");
+                increaseEmptyErrors();
             } else if (inputContentsNode.path("errors").size() <= 1) {
                 errorsNode.put("status", "WARNING");
+                increaseWarningErrors();
             } else if (inputContentsNode.path("errors").size() > 1) {
                 errorsNode.put("status", "OK");
             }
@@ -103,9 +113,11 @@ public class JsonHandler {
             if(inputContentsNode.path("params").size() == 0) {
                 paramsNode.put("status", "EMPTY");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
+                increaseEmptyParams();
             } else if (!allParamsHaveDescription) {
                 paramsNode.put("status", "WARNING");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
+                increaseWarningParams();
             } else {
                 paramsNode.put("status", "OK");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
@@ -133,9 +145,9 @@ public class JsonHandler {
         String formattedDateTime = LocalDateTime.now().format(formatter);
         String filename = formattedDateTime + ".json";
 
-        File jsonFile = new File("data/"+filename);
+        File jsonFile = new File("src/main/resources/data/"+filename);
         mapper.writerWithDefaultPrettyPrinter().writeValue(jsonFile, jsonNode);
 
-        System.out.println("JSON записан в файл: data/" + filename);
+        System.out.println("JSON записан в файл: src/main/resources/data/" + filename);
     }
 }

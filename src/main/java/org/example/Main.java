@@ -8,15 +8,36 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Scanner;
 
 import static org.example.JsonHandler.getMethodData;
 import static org.example.JsonHandler.saveJson;
 
 public class Main {
+    public static boolean includeAllErrorsAndParamsFlag = false;
+
     public static void main(String[] args) {
-        String token = "vk1.a.-qRam1Ax7v0ZYXTh0Q8Qa-";
+        String token = "vk1.a.---";
         ObjectMapper mapper = new ObjectMapper();
         boolean isTokenExpired = false;
+
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Включить список ВСЕХ ошибок и параметров в вывод? 1 = да, 0 - нет");
+        while (true) {
+            String line = scanner.nextLine();
+            if (line.equals("1")) {
+                includeAllErrorsAndParamsFlag = true;
+                scanner.close();
+                break;
+            } else if (line.equals("0")) {
+                includeAllErrorsAndParamsFlag = false;
+                scanner.close();
+                break;
+            } else {
+                System.out.println("Неверный ввод, повторите еще раз!");
+            }
+        }
 
         try {
             JsonNode rootNode = mapper.readTree(new File("data/input.json"));

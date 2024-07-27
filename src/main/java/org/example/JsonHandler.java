@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.example.Main.includeAllErrorsAndParamsFlag;
+
 public class JsonHandler {
 
     public static ObjectNode getMethodData(String methodName, String token) {
@@ -79,6 +81,14 @@ public class JsonHandler {
             } else if (inputContentsNode.path("errors").size() > 1) {
                 errorsNode.put("status", "OK");
             }
+            if (includeAllErrorsAndParamsFlag) {
+                ArrayNode errorsArrayNode = errorsNode.putArray("errors");
+                for (JsonNode errorNode : inputContentsNode.path("errors")) {
+                    ObjectNode newErrorNode = errorsArrayNode.addObject();
+                    newErrorNode.put("title", errorNode.path("title").asText());
+                    newErrorNode.put("description", errorNode.path("description").asText());
+                }
+            }
 
             // params
             ObjectNode paramsNode = outputNode.putObject("params");
@@ -100,6 +110,14 @@ public class JsonHandler {
                 paramsNode.put("status", "OK");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
 
+            }
+            if (includeAllErrorsAndParamsFlag) {
+                ArrayNode paramsArrayNode = paramsNode.putArray("params");
+                for (JsonNode paramNode : inputContentsNode.path("params")) {
+                    ObjectNode newErrorNode = paramsArrayNode.addObject();
+                    newErrorNode.put("name", paramNode.path("name").asText());
+                    newErrorNode.put("description", paramNode.path("description").asText());
+                }
             }
 
             return outputNode;

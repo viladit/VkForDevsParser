@@ -2,6 +2,7 @@ package org.example;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
@@ -64,13 +65,25 @@ public class JsonHandler {
 
             // params
             ObjectNode paramsNode = outputNode.putObject("params");
-            int paramsCount = inputContentsNode.path("params").size();
-            if (paramsCount == 0) {
-                outputNode.put("params", "0 BAD");
-            } else if (paramsCount <= 2) {
-                outputNode.put("params", "1-2 NORMAL");
-            } else if (paramsCount > 2) {
-                outputNode.put("params", "2+ GOOD");
+            // TODO
+            int noDescriptionParamsCount = 0;
+            boolean allParamsHaveDescription = true;
+            for (JsonNode paramNode : inputContentsNode.path("params")) {
+                if (paramNode.path("description").asText() == "") {
+                    allParamsHaveDescription = false;
+                    noDescriptionParamsCount++;
+                }
+            }
+
+            if(originalNode.path("response").path("page").path("contents").path("params").size() == 0) {
+                paramsNode.put("status", "EMPTY");
+                paramsNode.put("empty counter", noDescriptionParamsCount);
+            } else if (!allParamsHaveDescription) {
+                paramsNode.put("status", "WARNING");
+                paramsNode.put("empty counter", noDescriptionParamsCount);
+            } else {
+                paramsNode.put("status", "OK");
+                paramsNode.put("empty counter", noDescriptionParamsCount);
             }
 
             return outputNode;

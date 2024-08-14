@@ -20,11 +20,9 @@ public class JsonToCsvConverter {
         String csvFilePath = "src/main/resources/data/summary.csv";
 
         try {
-            // Инициализация структуры данных
             Map<String, List<String>> dataMap = new LinkedHashMap<>();
             List<String> dates = new ArrayList<>();
 
-            // Получение списка JSON файлов из директории
             Files.newDirectoryStream(Paths.get(directoryPath), path -> path.toString().endsWith(".json"))
                     .forEach(jsonFilePath -> {
                         try {
@@ -33,7 +31,6 @@ public class JsonToCsvConverter {
                             String dateStr = fileName.substring(0, fileName.indexOf('.'));
                             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
-                            // Пропускаем файл, если он не соответствует формату
                             Date date;
                             try {
                                 date = sdf.parse(dateStr);
@@ -51,7 +48,6 @@ public class JsonToCsvConverter {
                             ObjectMapper mapper = new ObjectMapper();
                             JsonNode rootNode = mapper.readTree(new File(jsonFilePath.toString()));
 
-                            // Обработка каждого блока команды
                             Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
                             while (fields.hasNext()) {
                                 Map.Entry<String, JsonNode> entry = fields.next();
@@ -59,16 +55,13 @@ public class JsonToCsvConverter {
                                 JsonNode commandNode = entry.getValue();
 
                                 if (command.equals("summary empty")) {
-                                    // Если это суммарные счетчики
                                     updateDataMap(dataMap, "summary.empty", rootNode.get("summary empty").asInt(), formattedDate);
                                 } else if (command.equals("summary warning")) {
                                     updateDataMap(dataMap, "summary.warning", rootNode.get("summary warning").asInt(), formattedDate);
                                 } else {
-                                    // Извлечение значений empty и warning для каждой команды
                                     int emptyCount = commandNode.has("empty") ? commandNode.get("empty").asInt() : 0;
                                     int warningCount = commandNode.has("warning") ? commandNode.get("warning").asInt() : 0;
 
-                                    // Заполнение данных в map
                                     updateDataMap(dataMap, command + ".empty", emptyCount, formattedDate);
                                     updateDataMap(dataMap, command + ".warning", warningCount, formattedDate);
                                 }

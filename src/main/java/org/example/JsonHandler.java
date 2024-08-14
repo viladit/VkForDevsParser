@@ -28,24 +28,24 @@ public class JsonHandler {
                 ObjectNode descriptionNode = outputNode.putObject("description");
                 descriptionNode.put("value", "");
                 descriptionNode.put("status", "EMPTY");
-                increaseEmptyDescriptions();
+                increaseEmptyCounter();
 
                 // result_description
                 ObjectNode resultDescriptionNode = outputNode.putObject("result_description");
                 resultDescriptionNode.put("value", "");
                 resultDescriptionNode.put("status", "EMPTY");
-                increaseEmptyResultDescriptions();
+                increaseEmptyCounter();
 
                 // errors
                 ObjectNode errorsNode = outputNode.putObject("errors");
                 errorsNode.put("status", "EMPTY");
-                increaseEmptyErrors();
+                increaseEmptyCounter();
 
                 // params
                 ObjectNode paramsNode = outputNode.putObject("params");
                 paramsNode.put("value", "");
                 paramsNode.put("status", "EMPTY");
-                increaseEmptyParams();
+                increaseEmptyCounter();
 
                 return outputNode;
             }
@@ -65,7 +65,7 @@ public class JsonHandler {
             descriptionNode.put("value", inputContentsNode.path("description").asText());
             if (inputContentsNode.path("description").asText() == "") {
                 descriptionNode.put("status", "EMPTY");
-                increaseEmptyDescriptions();
+                increaseEmptyCounter();
             } else {
                 descriptionNode.put("status", "OK");
             }
@@ -75,7 +75,7 @@ public class JsonHandler {
             resultDescriptionNode.put("value", inputContentsNode.path("result_description").asText());
             if (inputContentsNode.path("result_description").asText() == "") {
                 resultDescriptionNode.put("status", "EMPTY");
-                increaseEmptyResultDescriptions();
+                increaseEmptyCounter();
             } else {
                 resultDescriptionNode.put("status", "OK");
             }
@@ -84,10 +84,10 @@ public class JsonHandler {
             ObjectNode errorsNode = outputNode.putObject("errors");
             if (inputContentsNode.path("errors").size() == 0) {
                 errorsNode.put("status", "EMPTY");
-                increaseEmptyErrors();
+                increaseEmptyCounter();
             } else if (inputContentsNode.path("errors").size() <= 1) {
                 errorsNode.put("status", "WARNING");
-                increaseWarningErrors();
+                increaseWarningCounter();
             } else if (inputContentsNode.path("errors").size() > 1) {
                 errorsNode.put("status", "OK");
             }
@@ -113,11 +113,11 @@ public class JsonHandler {
             if(inputContentsNode.path("params").size() == 0) {
                 paramsNode.put("status", "EMPTY");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
-                increaseEmptyParams();
+                increaseEmptyCounter();
             } else if (!allParamsHaveDescription) {
                 paramsNode.put("status", "WARNING");
                 paramsNode.put("empty counter", noDescriptionParamsCount);
-                increaseWarningParams();
+                increaseWarningCounter();
             } else {
                 paramsNode.put("status", "OK");
                 paramsNode.put("empty counter", noDescriptionParamsCount);

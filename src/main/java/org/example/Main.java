@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 import static org.example.JsonHandler.getMethodData;
 import static org.example.JsonHandler.saveJson;
+import static org.example.JsonToCsvConverter.writeAllDataToCSV;
 
 public class Main {
     public static boolean includeAllErrorsAndParamsFlag = false;
@@ -22,7 +23,7 @@ public class Main {
     }};
 
     public static void main(String[] args) {
-        String token = "vk1.a.cGqL5la1d72x0O4KUjc3vfm0uJ1cVefIyj9kqytisF70jnjyBy0rznkzt4buR89zkrss5fP9g9rcM3F90pDBlSSr7ECttjR8rII6lrT583nNpJPwDVeFeOBksMOMS9CKS3ZwBti1uooQXvYNV4Lo-AY80fKCtjVpIlQ6QGqHW7mncXth8MDTpZUm_Eonq0MmwfIuJRAq1kS8F7Jn1XN30w";
+        String token = "vk1.a.iU9XpAP1T7MQbqwFxVsEYFdmxRmJj7vCTwBJAzXD5dONyWYiIWFwNmeYomNJ0_Yawd9elJmjOx8acSNHnE4HBKpHzNIBNQReldWIOVGsTcXAscvdvx1wNwFqQwhCwVjjZzSp8lwJsspyLpzflK128eye6QlAFF8NQFFOfMogCfJ9h5_WBl7_EVRZst4gYzcAudGqIXen_EkRd1om0MN05w";
         ObjectMapper mapper = new ObjectMapper();
         boolean isTokenExpired = false;
         Map<String, Integer> blankMap = new HashMap<>(statisticCounter);
@@ -82,8 +83,9 @@ public class Main {
             if (!isTokenExpired) {
                 saveJson(rootNode);
             }
-
-        } catch (IOException e) {
+            writeAllDataToCSV();
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 

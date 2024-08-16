@@ -5,46 +5,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import static org.example.JsonHandler.getMethodData;
 import static org.example.JsonHandler.saveJson;
 import static org.example.JsonToCsvConverter.writeAllDataToCSV;
 
 public class Main {
-    public static boolean includeAllErrorsAndParamsFlag = false;
+    public static String token;
+    public static boolean includeAllErrorsAndParamsFlag;
     public static Map<String, Integer> statisticCounter = new HashMap<String, Integer>() {{
         put("emptyCounter", 0);
         put("warningCounter", 0);
     }};
 
     public static void main(String[] args) {
-        String token = "vk1.a.iU9XpAP1T7MQbqwFxVsEYFdmxRmJj7vCTwBJAzXD5dONyWYiIWFwNmeYomNJ0_Yawd9elJmjOx8acSNHnE4HBKpHzNIBNQReldWIOVGsTcXAscvdvx1wNwFqQwhCwVjjZzSp8lwJsspyLpzflK128eye6QlAFF8NQFFOfMogCfJ9h5_WBl7_EVRZst4gYzcAudGqIXen_EkRd1om0MN05w";
-        ObjectMapper mapper = new ObjectMapper();
+        loadProperties();
         boolean isTokenExpired = false;
+        ObjectMapper mapper = new ObjectMapper();
         Map<String, Integer> blankMap = new HashMap<>(statisticCounter);
         Map<String, Integer> overallStatistic = new HashMap<>(statisticCounter);
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Включить список ВСЕХ ошибок и параметров в вывод? 1 = да, 0 - нет");
-        while (true) {
-            String line = scanner.nextLine();
-            if (line.equals("1")) {
-                includeAllErrorsAndParamsFlag = true;
-                scanner.close();
-                break;
-            } else if (line.equals("0")) {
-                includeAllErrorsAndParamsFlag = false;
-                scanner.close();
-                break;
-            } else {
-                System.out.println("Неверный ввод, повторите еще раз!");
-            }
-        }
 
         try {
             JsonNode rootNode = mapper.readTree(new File("src/main/resources/data/input.json"));
@@ -89,5 +71,15 @@ public class Main {
             e.printStackTrace();
         }
 
+    }
+    private static void loadProperties() {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream("src/main/resources/config.properties")) {
+            properties.load(input);
+            token = properties.getProperty("token");
+            includeAllErrorsAndParamsFlag = Boolean.parseBoolean(properties.getProperty("includeAllErrorsAndParamsFlag"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

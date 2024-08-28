@@ -44,6 +44,10 @@ public class JsonToCsvConverter {
                             String formattedDate = outputSdf.format(date);
                             dates.add(formattedDate);
 
+                            // Подсчет для summary по текущей дате
+                            final int[] dateTotalCount = {0};
+                            final int[] dateErrorCount = {0};
+
                             // Чтение и парсинг каждого JSON файла
                             ObjectMapper mapper = new ObjectMapper();
                             JsonNode rootNode = mapper.readTree(new File(jsonFilePath.toString()));
@@ -52,20 +56,45 @@ public class JsonToCsvConverter {
                             while (fields.hasNext()) {
                                 Map.Entry<String, JsonNode> entry = fields.next();
                                 String command = entry.getKey();
+
+                                // Пропускаем summary empty и summary warning
+                                if (command.startsWith("summary")) {
+                                    continue;
+                                }
+
                                 JsonNode commandNode = entry.getValue();
 
-                                if (command.equals("summary empty")) {
-                                    updateDataMap(dataMap, "summary.empty", rootNode.get("summary empty").asInt(), formattedDate);
-                                } else if (command.equals("summary warning")) {
-                                    updateDataMap(dataMap, "summary.warning", rootNode.get("summary warning").asInt(), formattedDate);
-                                } else {
-                                    int emptyCount = commandNode.has("empty") ? commandNode.get("empty").asInt() : 0;
-                                    int warningCount = commandNode.has("warning") ? commandNode.get("warning").asInt() : 0;
+                                // Подсчет общего количества методов и методов с ошибками или предупреждениями
+                                int totalMethods = 0;
+                                int methodsWithErrors = 0;
 
-                                    updateDataMap(dataMap, command + ".empty", emptyCount, formattedDate);
-                                    updateDataMap(dataMap, command + ".warning", warningCount, formattedDate);
+                                Iterator<Map.Entry<String, JsonNode>> methods = commandNode.fields();
+                                while (methods.hasNext()) {
+                                    Map.Entry<String, JsonNode> methodEntry = methods.next();
+                                    JsonNode methodNode = methodEntry.getValue();
+
+                                    if (methodNode.isObject()) {
+                                        totalMethods++;
+
+                                        boolean hasErrorOrWarning = checkForErrorsOrWarnings(methodNode);
+                                        if (hasErrorOrWarning) {
+                                            methodsWithErrors++;
+                                        }
+                                    }
                                 }
+
+                                // Суммируем для summary по дате
+                                dateTotalCount[0] += totalMethods;
+                                dateErrorCount[0] += methodsWithErrors;
+
+                                // Запись в dataMap: всего методов и методов с ошибками
+                                updateDataMap(dataMap, command + ".total", totalMethods, formattedDate);
+                                updateDataMap(dataMap, command + ".errors", methodsWithErrors, formattedDate);
                             }
+
+                            // Запись в dataMap для summary по текущей дате
+                            updateDataMap(dataMap, "summary.total", dateTotalCount[0], formattedDate);
+                            updateDataMap(dataMap, "summary.errors", dateErrorCount[0], formattedDate);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -80,6 +109,23 @@ public class JsonToCsvConverter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean checkForErrorsOrWarnings(JsonNode methodNode) {
+        // Проверяем наличие ошибок или предупреждений в ключевых полях
+        String[] keysToCheck = {"errors", "params", "description", "result_description"};
+        for (String key : keysToCheck) {
+            if (methodNode.has(key)) {
+                JsonNode statusNode = methodNode.get(key).get("status");
+                if (statusNode != null) {
+                    String status = statusNode.asText();
+                    if ("EMPTY".equals(status) || "WARNING".equals(status)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static void updateDataMap(Map<String, List<String>> dataMap, String key, int value, String date) {

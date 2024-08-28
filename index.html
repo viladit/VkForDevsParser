@@ -48,8 +48,7 @@
     <canvas id="summaryChart"></canvas>
 </div>
 
-<div class="container" id="chartsContainer">
-</div>
+<div class="container" id="chartsContainer"></div>
 
 <script>
     async function loadCSV() {
@@ -79,15 +78,15 @@
                 labels: dates,
                 datasets: [
                     {
-                        label: 'Empty',
-                        data: data.empty,
+                        label: 'Total',
+                        data: data.total,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 2,
                         fill: false,
                     },
                     {
-                        label: 'Warning',
-                        data: data.warning,
+                        label: 'Errors',
+                        data: data.errors,
                         borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 2,
                         fill: false,
@@ -111,12 +110,12 @@
 
     function renderCharts(parsedData) {
         const dates = parsedData.headers.slice(1).map(date => date.replace(/"/g, ''));
-        const summaryEmpty = parsedData.parsedData['summary.empty'];
-        const summaryWarning = parsedData.parsedData['summary.warning'];
+        const summaryTotal = parsedData.parsedData['summary.total'];
+        const summaryErrors = parsedData.parsedData['summary.errors'];
 
         // Render summary chart
         const summaryCtx = document.getElementById('summaryChart').getContext('2d');
-        createChart(summaryCtx, 'Summary', { empty: summaryEmpty, warning: summaryWarning }, dates);
+        createChart(summaryCtx, 'Summary', { total: summaryTotal, errors: summaryErrors }, dates);
 
         // Render other charts
         const chartsContainer = document.getElementById('chartsContainer');
@@ -127,8 +126,8 @@
 
             if (renderedCommands.has(commandName) || commandName === 'summary') return;
 
-            const commandDataEmpty = parsedData.parsedData[`${commandName}.empty`];
-            const commandDataWarning = parsedData.parsedData[`${commandName}.warning`];
+            const commandDataTotal = parsedData.parsedData[`${commandName}.total`];
+            const commandDataErrors = parsedData.parsedData[`${commandName}.errors`];
 
             const canvas = document.createElement('canvas');
             const div = document.createElement('div');
@@ -141,7 +140,7 @@
             chartsContainer.appendChild(div);
 
             const ctx = canvas.getContext('2d');
-            createChart(ctx, commandName, { empty: commandDataEmpty, warning: commandDataWarning }, dates);
+            createChart(ctx, commandName, { total: commandDataTotal, errors: commandDataErrors }, dates);
 
             renderedCommands.add(commandName);
         });

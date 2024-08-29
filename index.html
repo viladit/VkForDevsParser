@@ -77,6 +77,9 @@
     }
 
     function createChart(ctx, title, data, dates) {
+        // Находим максимальное значение total
+        const maxTotal = Math.max(...data.total);
+
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -85,7 +88,7 @@
                     {
                         label: 'Total',
                         data: data.total,
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 2,
                         fill: false,
                         hidden: true
@@ -95,7 +98,7 @@
                         data: data.errors,
                         borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 2,
-                        fill: false,
+                        fill: false
                     }
                 ]
             },
@@ -103,16 +106,18 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        beginAtZero: true
-                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        max: maxTotal, // Устанавливаем максимальное значение на оси Y как maxTotal
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }
         });
     }
+
 
     function createBarChart(ctx, title, labels, percentages) {
         new Chart(ctx, {

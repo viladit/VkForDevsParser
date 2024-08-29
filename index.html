@@ -24,7 +24,7 @@
             position: relative;
             height: 400px; /* Фиксированная высота для контейнера */
         }
-        .summary-chart-container {
+        .summary-chart-container, .error-percentage-chart-container {
             width: 80%;
             margin: 0 auto;
             margin-bottom: 30px;
@@ -46,6 +46,11 @@
 <div class="summary-chart-container">
     <div class="chart-title">Summary</div>
     <canvas id="summaryChart"></canvas>
+</div>
+
+<div class="error-percentage-chart-container">
+    <div class="chart-title">Error Percentage by Command (Latest Date)</div>
+    <canvas id="errorPercentageChart"></canvas>
 </div>
 
 <div class="container" id="chartsContainer"></div>
@@ -83,6 +88,7 @@
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 2,
                         fill: false,
+                        hidden: true
                     },
                     {
                         label: 'Errors',
@@ -108,6 +114,40 @@
         });
     }
 
+    function createBarChart(ctx, title, labels, percentages) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Error Percentage',
+                        data: percentages,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100, // Max Y
+                        ticks: {
+                            callback: function(value) {
+                                return value + "%";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
     function renderCharts(parsedData) {
         const dates = parsedData.headers.slice(1).map(date => date.replace(/"/g, ''));
         const summaryTotal = parsedData.parsedData['summary.total'];
@@ -116,6 +156,30 @@
         // Render summary chart
         const summaryCtx = document.getElementById('summaryChart').getContext('2d');
         createChart(summaryCtx, 'Summary', { total: summaryTotal, errors: summaryErrors }, dates);
+
+        // Prepare data for error percentage chart (latest date)
+        const labels = [];
+        const errorPercentages = [];
+        const lastIndex = dates.length - 1;
+
+        Object.keys(parsedData.parsedData).forEach(command => {
+            const [commandName, type] = command.split('.');
+
+            if (commandName === 'summary' || type !== 'total') return;
+
+            const commandTotal = parsedData.parsedData[`${commandName}.total`][lastIndex];
+            const commandErrors = parsedData.parsedData[`${commandName}.errors`][lastIndex];
+
+            if (commandTotal > 0) {
+                const percentage = (commandErrors / commandTotal) * 100;
+                labels.push(commandName);
+                errorPercentages.push(percentage.toFixed(2));
+            }
+        });
+
+        // Render error percentage chart
+        const errorPercentageCtx = document.getElementById('errorPercentageChart').getContext('2d');
+        createBarChart(errorPercentageCtx, 'Error Percentage by Command (Latest Date)', labels, errorPercentages);
 
         // Render other charts
         const chartsContainer = document.getElementById('chartsContainer');

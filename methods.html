@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Methods Overview</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .table-container {
+      width: 100%;
+      margin: 0 auto;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #3f8ae0;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .cross {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+    .method-name {
+      font-weight: bold;
+      color: #2c3e50;
+      background-color: #ecf0f1;
+    }
+    td.cross {
+      text-align: center; /* Центрирование текста в ячейке */
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Methods Overview</h1>
+
+<div class="table-container">
+  <table>
+    <thead>
+    <tr>
+      <th>Command</th>
+      <th>Description</th>
+      <th>Result</th>
+      <th>Errors</th>
+      <th>Params</th>
+    </tr>
+    </thead>
+    <tbody id="methodsTableBody">
+    <!-- Methods data will be dynamically inserted here -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const latestJSONPath = 'src/main/resources/data/2024-09-03_22-36-38.json';  // Замените на актуальный путь
+
+  async function loadJSON() {
+    const response = await fetch(latestJSONPath);
+    const data = await response.json();
+    return data;
+  }
+
+  function createCrossCell(condition) {
+    const cell = document.createElement('td');
+    cell.className = 'cross';
+    cell.innerHTML = condition === "EMPTY" ? "❌" : "";
+    return cell;
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('methodsTableBody');
+    for (const [command, methods] of Object.entries(data)) {
+      // Пропускаем команды "empty" и "warning", а также методы с этими именами
+      if (command === "empty" || command === "warning") continue;
+
+      // Пропускаем команды, не содержащие методов
+      if (typeof methods !== 'object' || !Object.keys(methods).length) continue;
+
+      // Добавляем команду в таблицу
+      const commandRow = document.createElement('tr');
+      const commandCell = document.createElement('td');
+      commandCell.className = 'method-name';
+      commandCell.textContent = command;
+      commandCell.colSpan = 5;
+      commandRow.appendChild(commandCell);
+      tbody.appendChild(commandRow);
+
+      // Добавляем методы команды
+      for (const [methodName, methodDetails] of Object.entries(methods)) {
+        // Пропускаем "empty" и "warning" методы
+        if (methodName === "empty" || methodName === "warning") continue;
+
+        const methodRow = document.createElement('tr');
+
+        const methodNameCell = document.createElement('td');
+        methodNameCell.textContent = methodName;
+
+        const descriptionCell = createCrossCell(methodDetails.description?.status);
+        const resultDescriptionCell = createCrossCell(methodDetails.result_description?.status);
+        const errorsCell = createCrossCell(methodDetails.errors?.status);
+        const paramsCell = createCrossCell(methodDetails.params?.status);
+
+        methodRow.appendChild(methodNameCell);
+        methodRow.appendChild(descriptionCell);
+        methodRow.appendChild(resultDescriptionCell);
+        methodRow.appendChild(errorsCell);
+        methodRow.appendChild(paramsCell);
+
+        tbody.appendChild(methodRow);
+      }
+    }
+  }
+
+  async function init() {
+    const jsonData = await loadJSON();
+    renderTable(jsonData);
+  }
+
+  init();
+</script>
+
+</body>
+</html>
